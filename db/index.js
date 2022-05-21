@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
+const AutoIncrementPlugin = require('mongoose-sequence');
+
+let dbInstance;
+
 async function connect() {
     try {
-        await mongoose.connect('mongodb://localhost:27017');
+        dbInstance = await mongoose.connect('mongodb://localhost:27017/checkers');
+
         console.log('Successfully connected to Mongo.')
     }
     catch(err) {
@@ -9,4 +14,13 @@ async function connect() {
     }
 }
 
-module.exports = { connect };
+function autoIncrementField(schema, field = 'id') {
+    if (!dbInstance) return;
+    AutoIncrementPlugin(dbInstance)(schema, { inc_field: field });
+}
+
+function foreignKeyField(collection) {
+    return { type: mongoose.Schema.Types.ObjectId, ref: collection };
+}
+
+module.exports = { connect, autoIncrementField, foreignKeyField };
